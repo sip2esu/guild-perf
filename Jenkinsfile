@@ -10,18 +10,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                deleteDir()
                 checkout scm
             }
         }
         stage('Smoke Test') {
             steps {
-                bat '%JMETER_HOME%\\bin\\jmeter.bat -n -f -t perf/smoke.jmx -l reports/smoke.jtl -e -o html-report -Jthreads=%THREADS% -Jloops=%LOOPS%'
+                bat '''
+                    if not exist reports mkdir reports
+                    "%JMETER_HOME%\\bin\\jmeter.bat" -n -t perf/smoke.jmx -l reports/smoke.jtl -e -o html-report -Jthreads=%THREADS% -Jloops=%LOOPS%
+                '''
             }
         }
     }
     post {
         always {
-            archiveArtifacts artifacts: 'reports/, html-report/', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'reports/**, html-report/**', allowEmptyArchive: true
         }
     }
 }
